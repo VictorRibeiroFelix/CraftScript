@@ -49,3 +49,61 @@ class TokenType(Enum):
     FLOAT = "FLOAT"
     STRING = "STRING"
     BOOL = "BOOL"
+
+    # =========================
+    # OPERADORES ARITMÉTICOS
+    # =========================
+
+    MAIS = "+"
+    MENOS = "-"
+    MULT = "*"
+    DIV = "/"
+    MOD = "%"
+
+    # =========================
+    # ATRIBUIÇÃO
+    # =========================
+
+    ATRIB = "="
+
+    # =========================
+    # OPERADORES RELACIONAIS
+    # =========================
+
+    IGUAL = "=="
+    DIF = "!="
+
+    MENOR = "<"
+    MAIOR = ">"
+
+    MENORIG = "<="
+    MAIORIG = ">="
+
+    # =========================
+    # OPERADORES LÓGICOS
+    # =========================
+
+    E = "&&"
+    OU = "||"
+    NAO = "!"
+
+    # =========================
+    # DELIMITADORES
+    # =========================
+
+    ABRE_PAR = "("
+    FECHA_PAR = ")"
+
+    ABRE_CHAVE = "{"
+    FECHA_CHAVE = "}"
+
+    ABRE_COL = "["
+    FECHA_COL = "]"
+
+    VIRGULA = ","
+
+    PONTO_VIRG = ";"
+
+    PONTO = "."
+
+    EOF = "EOF"
