@@ -95,3 +95,107 @@ class Mostrar:
     def __repr__(self):
 
         return f"Mostrar({self.valores})"
+
+
+class For:
+
+    def __init__(
+        self,
+        inicio,
+        condicao,
+        incremento,
+        bloco
+    ):
+
+        self.inicio = inicio
+        self.condicao = condicao
+        self.incremento = incremento
+        self.bloco = bloco
+
+    def __repr__(self):
+
+        return (
+            f"For("
+            f"{self.inicio}, "
+            f"{self.condicao}, "
+            f"{self.incremento}, "
+            f"{self.bloco})"
+        )
+
+
+class Function:
+
+    def __init__(
+        self,
+        nome,
+        parametros,
+        bloco
+    ):
+
+        self.nome = nome
+        self.parametros = parametros
+        self.bloco = bloco
+
+    def __repr__(self):
+
+        return (
+            f"Function("
+            f"{self.nome}, "
+            f"{self.parametros}, "
+            f"{self.bloco})"
+        )
+
+
+class FunctionCall:
+
+    def __init__(self, nome, argumentos):
+
+        self.nome = nome
+        self.argumentos = argumentos
+
+    def __repr__(self):
+
+        return (
+            f"FunctionCall("
+            f"{self.nome}, "
+            f"{self.argumentos})"
+        )
+
+
+class BinaryOp:
+
+    def __init__(
+        self,
+        esquerda,
+        operador,
+        direita
+    ):
+
+        self.esquerda = esquerda
+        self.operador = operador
+        self.direita = direita
+
+    def __repr__(self):
+
+        return (
+            f"BinaryOp("
+            f"{self.esquerda}, "
+            f"{self.operador}, "
+            f"{self.direita})"
+        )
+
+
+class UnaryOp:
+
+    def __init__(self, operador, valor):
+
+        self.operador = operador
+        self.valor = valor
+
+    def __repr__(self):
+
+        return (
+            f"UnaryOp("
+            f"{self.operador}, "
+            f"{self.valor})"
+        )
