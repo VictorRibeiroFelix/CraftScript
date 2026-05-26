@@ -199,3 +199,45 @@ class UnaryOp:
             f"{self.operador}, "
             f"{self.valor})"
         )
+
+
+class Literal:
+
+    def __init__(self, valor):
+
+        self.valor = valor
+
+    def __repr__(self):
+
+        return f"Literal({self.valor})"
+
+
+class Variable:
+
+    def __init__(self, nome):
+
+        self.nome = nome
+
+    def __repr__(self):
+
+        return f"Variable({self.nome})"
+
+class Return:
+
+    def __init__(self, valor):
+
+        self.valor = valor
+
+    def __repr__(self):
+
+        return f"Return({self.valor})"
+
+class Input:
+
+    def __init__(self, nome):
+
+        self.nome = nome
+
+    def __repr__(self):
+
+        return f"Input({self.nome})"
