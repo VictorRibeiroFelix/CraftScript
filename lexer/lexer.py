@@ -168,3 +168,166 @@ class Lexer:
         tipo = palavras.get(resultado, TokenType.ID)
 
         return Token(tipo, resultado)
+
+    # =========================
+    # TOKEN PRINCIPAL
+    # =========================
+
+    def proximo_token(self):
+
+        while self.char is not None:
+
+            # ESPAÇOS
+
+            if self.char.isspace():
+                self.ignorar_espacos()
+                continue
+
+            # COMENTÁRIOS
+
+            if self.char == "/" and self.olhar() == "/":
+                self.ignorar_comentario()
+                continue
+
+            if self.char == "/" and self.olhar() == "*":
+                self.avancar()
+                self.avancar()
+                while self.char is not None:
+                    if self.char == "*" and self.olhar() == "/":
+                        self.avancar()
+                        self.avancar()
+                        break
+                    self.avancar()
+                continue
+
+            # IDENTIFICADORES
+
+            if self.char.isalpha() or self.char == "_":
+                return self.identificador()
+
+            # NÚMEROS
+
+            if self.char.isdigit():
+                return self.numero()
+
+            # STRINGS
+
+            if self.char == '"':
+                return self.string()
+
+            # =========================
+            # OPERADORES COMPOSTOS
+            # =========================
+
+            if self.char == "=" and self.olhar() == "=":
+                self.avancar()
+                self.avancar()
+                return Token(TokenType.IGUAL, "==")
+
+            if self.char == "!" and self.olhar() == "=":
+                self.avancar()
+                self.avancar()
+                return Token(TokenType.DIF, "!=")
+
+            if self.char == "<" and self.olhar() == "=":
+                self.avancar()
+                self.avancar()
+                return Token(TokenType.MENORIG, "<=")
+
+            if self.char == ">" and self.olhar() == "=":
+                self.avancar()
+                self.avancar()
+                return Token(TokenType.MAIORIG, ">=")
+
+            if self.char == "&" and self.olhar() == "&":
+                self.avancar()
+                self.avancar()
+                return Token(TokenType.E, "&&")
+
+            if self.char == "|" and self.olhar() == "|":
+                self.avancar()
+                self.avancar()
+                return Token(TokenType.OU, "||")
+
+            # =========================
+            # OPERADORES SIMPLES
+            # =========================
+
+            if self.char == "=":
+                self.avancar()
+                return Token(TokenType.ATRIB, "=")
+
+            if self.char == "+":
+                self.avancar()
+                return Token(TokenType.MAIS, "+")
+
+            if self.char == "-":
+                self.avancar()
+                return Token(TokenType.MENOS, "-")
+
+            if self.char == "*":
+                self.avancar()
+                return Token(TokenType.MULT, "*")
+
+            if self.char == "/":
+                self.avancar()
+                return Token(TokenType.DIV, "/")
+
+            if self.char == "%":
+                self.avancar()
+                return Token(TokenType.MOD, "%")
+
+            if self.char == "<":
+                self.avancar()
+                return Token(TokenType.MENOR, "<")
+
+            if self.char == ">":
+                self.avancar()
+                return Token(TokenType.MAIOR, ">")
+
+            if self.char == "!":
+                self.avancar()
+                return Token(TokenType.NAO, "!")
+
+            # =========================
+            # DELIMITADORES
+            # =========================
+
+            if self.char == "(":
+                self.avancar()
+                return Token(TokenType.ABRE_PAR, "(")
+
+            if self.char == ")":
+                self.avancar()
+                return Token(TokenType.FECHA_PAR, ")")
+
+            if self.char == "{":
+                self.avancar()
+                return Token(TokenType.ABRE_CHAVE, "{")
+
+            if self.char == "}":
+                self.avancar()
+                return Token(TokenType.FECHA_CHAVE, "}")
+
+            if self.char == "[":
+                self.avancar()
+                return Token(TokenType.ABRE_COL, "[")
+
+            if self.char == "]":
+                self.avancar()
+                return Token(TokenType.FECHA_COL, "]")
+
+            if self.char == ";":
+                self.avancar()
+                return Token(TokenType.PONTO_VIRG, ";")
+
+            if self.char == ",":
+                self.avancar()
+                return Token(TokenType.VIRGULA, ",")
+
+            raise Exception(
+                f"Caractere inválido: {self.char} "
+                f"| Linha {self.linha}"
+            )
+
+        return Token(TokenType.EOF, None)
