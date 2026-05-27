@@ -1,0 +1,314 @@
+from lexer.token_type import TokenType
+from nodes.nodes import *
+
+
+class Parser:
+
+    def __init__(self, lexer):
+
+        self.lexer = lexer
+        self.token_atual = lexer.proximo_token()
+
+    # =====================================
+    # ERRO
+    # =====================================
+
+    def erro(self, msg="Erro sintático"):
+
+        raise Exception(
+            f"{msg} | Linha {self.lexer.linha} "
+            f"Coluna {self.lexer.coluna}"
+        )
+
+    # =====================================
+    # CONSUMIR TOKEN
+    # =====================================
+
+    def comer(self, tipo):
+
+        if self.token_atual.tipo == tipo:
+
+            self.token_atual = self.lexer.proximo_token()
+
+        else:
+
+            self.erro(
+                f"Esperado {tipo} "
+                f"mas encontrou {self.token_atual.tipo}"
+            )
+
+    # =====================================
+    # PROGRAMA
+    # =====================================
+
+    def programa(self):
+
+        self.comer(TokenType.MUNDO)
+
+        bloco = self.bloco()
+
+        return Program(bloco.statements)
+
+    # =====================================
+    # BLOCO
+    # =====================================
+
+    def bloco(self):
+
+        statements = []
+
+        self.comer(TokenType.ABRE_CHAVE)
+
+        while self.token_atual.tipo != TokenType.FECHA_CHAVE:
+
+            statements.append(
+                self.statement()
+            )
+
+        self.comer(TokenType.FECHA_CHAVE)
+
+        return Block(statements)
+
+    # =====================================
+    # STATEMENTS
+    # =====================================
+
+    def statement(self):
+
+        # DECLARAÇÃO
+
+        if self.token_atual.tipo == TokenType.BLOCO:
+
+            return self.declaracao()
+
+        # MOSTRAR
+
+        elif self.token_atual.tipo == TokenType.MOSTRAR:
+
+            return self.mostrar_stmt()
+
+        # RETURN
+
+        elif self.token_atual.tipo == TokenType.DROPAR:
+
+            return self.return_stmt()
+
+        # INPUT
+
+        elif self.token_atual.tipo == TokenType.COLETAR:
+
+            return self.input_stmt()
+
+        # ATRIBUIÇÃO OU FUNÇÃO
+
+        elif self.token_atual.tipo == TokenType.ID:
+
+            nome = self.token_atual.valor
+
+            self.comer(TokenType.ID)
+
+            # CHAMADA DE FUNÇÃO
+
+            if self.token_atual.tipo == TokenType.ABRE_PAR:
+
+                self.comer(TokenType.ABRE_PAR)
+
+                argumentos = []
+
+                if self.token_atual.tipo != TokenType.FECHA_PAR:
+
+                    argumentos.append(
+                        self.expr()
+                    )
+
+                    while self.token_atual.tipo == TokenType.VIRGULA:
+
+                        self.comer(TokenType.VIRGULA)
+
+                        argumentos.append(
+                            self.expr()
+                        )
+
+                self.comer(TokenType.FECHA_PAR)
+
+                self.comer(TokenType.PONTO_VIRG)
+
+                return FunctionCall(
+                    nome,
+                    argumentos
+                )
+
+            # ATRIBUIÇÃO
+
+            elif self.token_atual.tipo == TokenType.ATRIB:
+
+                self.comer(TokenType.ATRIB)
+
+                valor = self.expr()
+
+                self.comer(TokenType.PONTO_VIRG)
+
+                return Assignment(
+                    nome,
+                    valor
+                )
+
+            else:
+
+                self.erro(
+                    "Esperado '=' ou '('"
+                )
+
+        else:
+
+            self.erro("Comando inválido")
+
+    # =====================================
+    # DECLARAÇÃO
+    # =====================================
+
+    def declaracao(self):
+
+        self.comer(TokenType.BLOCO)
+
+        tipos = [
+
+            TokenType.PEDRA,
+            TokenType.LIQUIDO,
+            TokenType.FUMACA,
+            TokenType.BANDEIRA,
+            TokenType.VAZIO
+
+        ]
+
+        if self.token_atual.tipo not in tipos:
+
+            self.erro("Tipo inválido")
+
+        tipo = self.token_atual.valor
+
+        self.token_atual = self.lexer.proximo_token()
+
+        nome = self.token_atual.valor
+
+        self.comer(TokenType.ID)
+
+        self.comer(TokenType.ATRIB)
+
+        valor = self.expr()
+
+        self.comer(TokenType.PONTO_VIRG)
+
+        return Declaration(
+            tipo,
+            nome,
+            valor
+        )
+
+    # =====================================
+    # MOSTRAR
+    # =====================================
+
+    def mostrar_stmt(self):
+
+        valores = []
+
+        self.comer(TokenType.MOSTRAR)
+
+        self.comer(TokenType.ABRE_PAR)
+
+        valores.append(
+            self.expr()
+        )
+
+        while self.token_atual.tipo == TokenType.VIRGULA:
+
+            self.comer(TokenType.VIRGULA)
+
+            valores.append(
+                self.expr()
+            )
+
+        self.comer(TokenType.FECHA_PAR)
+
+        self.comer(TokenType.PONTO_VIRG)
+
+        return Mostrar(valores)
+
+    # =====================================
+    # RETURN
+    # =====================================
+
+    def return_stmt(self):
+
+        self.comer(TokenType.DROPAR)
+
+        valor = self.expr()
+
+        self.comer(TokenType.PONTO_VIRG)
+
+        return Return(valor)
+
+    # =====================================
+    # INPUT
+    # =====================================
+
+    def input_stmt(self):
+
+        self.comer(TokenType.COLETAR)
+
+        self.comer(TokenType.ABRE_PAR)
+
+        nome = self.token_atual.valor
+
+        self.comer(TokenType.ID)
+
+        self.comer(TokenType.FECHA_PAR)
+
+        self.comer(TokenType.PONTO_VIRG)
+
+        return Input(nome)
+
+    # =====================================
+    # EXPRESSÃO (stub)
+    # =====================================
+
+    def expr(self):
+
+        return self.fator()
+
+    # =====================================
+    # FATOR (stub)
+    # =====================================
+
+    def fator(self):
+
+        token = self.token_atual
+
+        if token.tipo == TokenType.INT:
+            self.comer(TokenType.INT)
+            return Literal(token.valor)
+
+        elif token.tipo == TokenType.FLOAT:
+            self.comer(TokenType.FLOAT)
+            return Literal(token.valor)
+
+        elif token.tipo == TokenType.STRING:
+            self.comer(TokenType.STRING)
+            return Literal(token.valor)
+
+        elif token.tipo == TokenType.VERDADEIRO:
+            self.comer(TokenType.VERDADEIRO)
+            return Literal(True)
+
+        elif token.tipo == TokenType.FALSO:
+            self.comer(TokenType.FALSO)
+            return Literal(False)
+
+        elif token.tipo == TokenType.ID:
+            nome = token.valor
+            self.comer(TokenType.ID)
+            return Variable(nome)
+
+        else:
+            self.erro("Expressão inválida")
