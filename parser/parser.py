@@ -81,6 +81,30 @@ class Parser:
 
             return self.declaracao()
 
+        # IF
+
+        elif self.token_atual.tipo == TokenType.SEVIDA:
+
+            return self.if_stmt()
+
+        # WHILE
+
+        elif self.token_atual.tipo == TokenType.MINA:
+
+            return self.while_stmt()
+
+        # FOR
+
+        elif self.token_atual.tipo == TokenType.CRAFTAR:
+
+            return self.for_stmt()
+
+        # FUNÇÃO
+
+        elif self.token_atual.tipo == TokenType.SPAWNAR:
+
+            return self.function_stmt()
+
         # MOSTRAR
 
         elif self.token_atual.tipo == TokenType.MOSTRAR:
@@ -268,6 +292,191 @@ class Parser:
         self.comer(TokenType.PONTO_VIRG)
 
         return Input(nome)
+
+    # =====================================
+    # WHILE
+    # =====================================
+
+    def while_stmt(self):
+
+        self.comer(TokenType.MINA)
+
+        self.comer(TokenType.ABRE_PAR)
+
+        condicao = self.expr()
+
+        self.comer(TokenType.FECHA_PAR)
+
+        bloco = self.bloco()
+
+        return While(
+            condicao,
+            bloco
+        )
+
+    # =====================================
+    # FOR
+    # =====================================
+
+    def for_stmt(self):
+
+        self.comer(TokenType.CRAFTAR)
+
+        self.comer(TokenType.ABRE_PAR)
+
+        inicio = self.atribuicao_for()
+
+        self.comer(TokenType.PONTO_VIRG)
+
+        condicao = self.expr()
+
+        self.comer(TokenType.PONTO_VIRG)
+
+        incremento = self.atribuicao_for()
+
+        self.comer(TokenType.FECHA_PAR)
+
+        bloco = self.bloco()
+
+        return For(
+            inicio,
+            condicao,
+            incremento,
+            bloco
+        )
+
+    # =====================================
+    # ATRIBUIÇÃO FOR
+    # =====================================
+
+    def atribuicao_for(self):
+
+        nome = self.token_atual.valor
+
+        self.comer(TokenType.ID)
+
+        self.comer(TokenType.ATRIB)
+
+        valor = self.expr()
+
+        return Assignment(
+            nome,
+            valor
+        )
+
+    # =====================================
+    # FUNÇÃO
+    # =====================================
+
+    def function_stmt(self):
+
+        self.comer(TokenType.SPAWNAR)
+
+        tipos = [
+
+            TokenType.PEDRA,
+            TokenType.LIQUIDO,
+            TokenType.FUMACA,
+            TokenType.BANDEIRA,
+            TokenType.VAZIO
+
+        ]
+
+        if self.token_atual.tipo not in tipos:
+
+            self.erro("Tipo inválido")
+
+        self.token_atual = self.lexer.proximo_token()
+
+        nome = self.token_atual.valor
+
+        self.comer(TokenType.ID)
+
+        self.comer(TokenType.ABRE_PAR)
+
+        parametros = []
+
+        while self.token_atual.tipo != TokenType.FECHA_PAR:
+
+            parametros.append(
+                self.token_atual.valor
+            )
+
+            self.comer(TokenType.ID)
+
+            if self.token_atual.tipo == TokenType.VIRGULA:
+
+                self.comer(TokenType.VIRGULA)
+
+        self.comer(TokenType.FECHA_PAR)
+
+        bloco = self.bloco()
+
+        return Function(
+            nome,
+            parametros,
+            bloco
+        )
+
+    # =====================================
+    # IF
+    # =====================================
+
+    def if_stmt(self):
+
+        self.comer(TokenType.SEVIDA)
+
+        self.comer(TokenType.ABRE_PAR)
+
+        condicao = self.expr()
+
+        self.comer(TokenType.FECHA_PAR)
+
+        bloco_if = self.bloco()
+
+        bloco_else = None
+
+        if self.token_atual.tipo == TokenType.SENAOSEVIDA:
+
+            bloco_else = Block([self._senao_sevida()])
+
+        elif self.token_atual.tipo == TokenType.SENAO:
+
+            self.comer(TokenType.SENAO)
+
+            bloco_else = self.bloco()
+
+        return If(
+            condicao,
+            bloco_if,
+            bloco_else
+        )
+
+    def _senao_sevida(self):
+
+        self.comer(TokenType.SENAOSEVIDA)
+
+        self.comer(TokenType.ABRE_PAR)
+
+        condicao = self.expr()
+
+        self.comer(TokenType.FECHA_PAR)
+
+        bloco_if = self.bloco()
+
+        bloco_else = None
+
+        if self.token_atual.tipo == TokenType.SENAOSEVIDA:
+
+            bloco_else = Block([self._senao_sevida()])
+
+        elif self.token_atual.tipo == TokenType.SENAO:
+
+            self.comer(TokenType.SENAO)
+
+            bloco_else = self.bloco()
+
+        return If(condicao, bloco_if, bloco_else)
 
     # =====================================
     # EXPRESSÃO (stub)
