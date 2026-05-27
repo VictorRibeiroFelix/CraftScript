@@ -28,6 +28,8 @@ class Parser:
 
         if self.token_atual.tipo == tipo:
 
+            print(f"Consumindo: {self.token_atual}")
+
             self.token_atual = self.lexer.proximo_token()
 
         else:
@@ -46,6 +48,8 @@ class Parser:
         self.comer(TokenType.MUNDO)
 
         bloco = self.bloco()
+
+        print("\nPrograma válido")
 
         return Program(bloco.statements)
 
@@ -436,11 +440,7 @@ class Parser:
 
         bloco_else = None
 
-        if self.token_atual.tipo == TokenType.SENAOSEVIDA:
-
-            bloco_else = Block([self._senao_sevida()])
-
-        elif self.token_atual.tipo == TokenType.SENAO:
+        if self.token_atual.tipo == TokenType.SENAO:
 
             self.comer(TokenType.SENAO)
 
@@ -452,72 +452,187 @@ class Parser:
             bloco_else
         )
 
-    def _senao_sevida(self):
-
-        self.comer(TokenType.SENAOSEVIDA)
-
-        self.comer(TokenType.ABRE_PAR)
-
-        condicao = self.expr()
-
-        self.comer(TokenType.FECHA_PAR)
-
-        bloco_if = self.bloco()
-
-        bloco_else = None
-
-        if self.token_atual.tipo == TokenType.SENAOSEVIDA:
-
-            bloco_else = Block([self._senao_sevida()])
-
-        elif self.token_atual.tipo == TokenType.SENAO:
-
-            self.comer(TokenType.SENAO)
-
-            bloco_else = self.bloco()
-
-        return If(condicao, bloco_if, bloco_else)
-
     # =====================================
-    # EXPRESSÃO (stub)
+    # EXPRESSÃO
     # =====================================
 
     def expr(self):
 
-        return self.fator()
+        node = self.termo()
+
+        while self.token_atual.tipo in (
+
+            TokenType.MAIS,
+            TokenType.MENOS,
+            TokenType.MAIOR,
+            TokenType.MENOR,
+            TokenType.IGUAL,
+            TokenType.DIF,
+            TokenType.MAIORIG,
+            TokenType.MENORIG,
+            TokenType.E,
+            TokenType.OU
+
+        ):
+
+            operador = self.token_atual.valor
+
+            self.token_atual = self.lexer.proximo_token()
+
+            direita = self.termo()
+
+            node = BinaryOp(
+                node,
+                operador,
+                direita
+            )
+
+        return node
 
     # =====================================
-    # FATOR (stub)
+    # TERMO
+    # =====================================
+
+    def termo(self):
+
+        node = self.fator()
+
+        while self.token_atual.tipo in (
+
+            TokenType.MULT,
+            TokenType.DIV,
+            TokenType.MOD
+
+        ):
+
+            operador = self.token_atual.valor
+
+            self.token_atual = self.lexer.proximo_token()
+
+            direita = self.fator()
+
+            node = BinaryOp(
+                node,
+                operador,
+                direita
+            )
+
+        return node
+
+    # =====================================
+    # FATOR
     # =====================================
 
     def fator(self):
 
         token = self.token_atual
 
+        # INT
+
         if token.tipo == TokenType.INT:
+
             self.comer(TokenType.INT)
+
             return Literal(token.valor)
+
+        # FLOAT
 
         elif token.tipo == TokenType.FLOAT:
+
             self.comer(TokenType.FLOAT)
+
             return Literal(token.valor)
+
+        # STRING
 
         elif token.tipo == TokenType.STRING:
+
             self.comer(TokenType.STRING)
+
             return Literal(token.valor)
 
-        elif token.tipo == TokenType.VERDADEIRO:
-            self.comer(TokenType.VERDADEIRO)
-            return Literal(True)
-
-        elif token.tipo == TokenType.FALSO:
-            self.comer(TokenType.FALSO)
-            return Literal(False)
+        # ID
 
         elif token.tipo == TokenType.ID:
+
             nome = token.valor
+
             self.comer(TokenType.ID)
+
+            # CHAMADA DE FUNÇÃO
+
+            if self.token_atual.tipo == TokenType.ABRE_PAR:
+
+                self.comer(TokenType.ABRE_PAR)
+
+                argumentos = []
+
+                if self.token_atual.tipo != TokenType.FECHA_PAR:
+
+                    argumentos.append(
+                        self.expr()
+                    )
+
+                    while self.token_atual.tipo == TokenType.VIRGULA:
+
+                        self.comer(TokenType.VIRGULA)
+
+                        argumentos.append(
+                            self.expr()
+                        )
+
+                self.comer(TokenType.FECHA_PAR)
+
+                return FunctionCall(
+                    nome,
+                    argumentos
+                )
+
             return Variable(nome)
 
+        # TRUE
+
+        elif token.tipo == TokenType.VERDADEIRO:
+
+            self.comer(TokenType.VERDADEIRO)
+
+            return Literal(True)
+
+        # FALSE
+
+        elif token.tipo == TokenType.FALSO:
+
+            self.comer(TokenType.FALSO)
+
+            return Literal(False)
+
+        # NOT
+
+        elif token.tipo == TokenType.NAO:
+
+            operador = token.valor
+
+            self.comer(TokenType.NAO)
+
+            valor = self.fator()
+
+            return UnaryOp(
+                operador,
+                valor
+            )
+
+        # ( EXPRESSÃO )
+
+        elif token.tipo == TokenType.ABRE_PAR:
+
+            self.comer(TokenType.ABRE_PAR)
+
+            node = self.expr()
+
+            self.comer(TokenType.FECHA_PAR)
+
+            return node
+
         else:
+
             self.erro("Expressão inválida")
