@@ -1,0 +1,28 @@
+mundo {
+
+    bloco pedra vida = 10;
+
+    mostrar("Vida:", vida);
+
+    spawnar pedra soma(a, b) {
+
+        dropar a + b;
+    }
+
+    bloco pedra x = soma(5, 2);
+
+    mostrar("Resultado:", x);
+
+    bloco pedra i = 0;
+
+    mina(i < 3) {
+
+        mostrar(i);
+
+        i = i + 1;
+    }
+
+    coletar(nome);
+
+    mostrar("Jogador:", nome);
+}
