@@ -28,8 +28,6 @@ class Parser:
 
         if self.token_atual.tipo == tipo:
 
-            print(f"Consumindo: {self.token_atual}")
-
             self.token_atual = self.lexer.proximo_token()
 
         else:
@@ -48,8 +46,6 @@ class Parser:
         self.comer(TokenType.MUNDO)
 
         bloco = self.bloco()
-
-        print("\nPrograma válido")
 
         return Program(bloco.statements)
 

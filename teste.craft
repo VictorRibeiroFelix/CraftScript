@@ -22,6 +22,8 @@ mundo {
         i = i + 1;
     }
 
+    bloco fumaca nome = "";
+
     coletar(nome);
 
     mostrar("Jogador:", nome);
