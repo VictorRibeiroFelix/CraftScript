@@ -1,46 +1,49 @@
+import sys
+
 from lexer.lexer             import Lexer
 from parser.parser           import Parser
 from semantic.semantic       import Semantico
 from interpreter.interpreter import Interpreter
 
-with open("teste.craft", "r", encoding="utf-8") as f:
+arquivo = sys.argv[1] if len(sys.argv) > 1 else "teste.craft"
+
+print(f"Analisando: {arquivo}\n")
+
+with open(arquivo, "r", encoding="utf-8") as f:
     codigo = f.read()
 
-# =========================
-# LÉXICO
-# =========================
+try:s
+    # =========================
+    # LÉXICO + SINTÁTICO
+    # =========================
 
-lexer = Lexer(codigo)
+    lexer  = Lexer(codigo)
+    parser = Parser(lexer)
+    ast    = parser.programa()
 
-# =========================
-# SINTÁTICO
-# =========================
+    print("\nAST:\n")
+    print(ast)
 
-parser = Parser(lexer)
+    # =========================
+    # SEMÂNTICO
+    # =========================
 
-ast = parser.programa()
+    print("\n=== ANALISE SEMANTICA ===\n")
 
-print("\nAST:\n")
-print(ast)
+    semantico = Semantico()
+    semantico.visitar(ast)
 
-# =========================
-# SEMÂNTICO
-# =========================
+    print("\nAnalise semantica concluida sem erros.\n")
 
-print("\n=== ANÁLISE SEMÂNTICA ===\n")
+    # =========================
+    # EXECUÇÃO
+    # =========================
 
-semantico = Semantico()
+    print("EXECUCAO:\n")
 
-semantico.visitar(ast)
+    interpreter = Interpreter()
+    interpreter.visitar(ast)
 
-print("\nAnalise semantica concluida sem erros.\n")
-
-# =========================
-# EXECUÇÃO
-# =========================
-
-print("EXECUÇÃO:\n")
-
-interpreter = Interpreter()
-
-interpreter.visitar(ast)
+except Exception as e:
+    print(f"\nERRO: {e}\n")
+    sys.exit(1)

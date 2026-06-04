@@ -1,0 +1,40 @@
+mundo {
+
+    // Declaracao de variaveis
+    bloco pedra    nivel  = 5;
+    bloco fumaca   nome   = "Steve";
+    bloco liquido  vida   = 20.0;
+    bloco bandeira vivo   = verdadeiro;
+
+    mostrar("Jogador:", nome);
+    mostrar("Nivel:", nivel);
+    mostrar("Vida:", vida);
+
+    // Funcao
+    spawnar pedra calcularDano(base, bonus) {
+        dropar base + bonus;
+    }
+
+    bloco pedra dano = calcularDano(10, nivel);
+    mostrar("Dano causado:", dano);
+
+    // Condicional
+    seVida(vivo == verdadeiro) {
+        mostrar("O jogador ainda esta vivo!");
+    } senao {
+        mostrar("Game over.");
+    }
+
+    // Laco
+    bloco pedra i = 1;
+
+    mina(i < 4) {
+        mostrar("Rodada:", i);
+        i = i + 1;
+    }
+
+    // Input
+    bloco fumaca novo = "";
+    coletar(novo);
+    mostrar("Novo jogador registrado:", novo);
+}

@@ -1,0 +1,16 @@
+mundo {
+
+    // ERRO 1 (lexico): caractere invalido '@' — o analisador nao reconhece
+    bloco pedra nivel = 5@;
+
+    // ERRO 2 (sintatico): palavra-chave errada — 'bloco' foi digitado 'bloco' certo,
+    // mas 'peddra' nao existe como tipo
+    bloco peddra nome = "Steve";
+
+    // ERRO 3 (semantico): variavel 'x' usada sem ter sido declarada antes
+    mostrar(x);
+
+    // ERRO 4 (semantico): tipo incompativel — 'pedra' nao aceita texto
+    bloco pedra pontos = "cem";
+
+}
