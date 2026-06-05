@@ -12,7 +12,7 @@ print(f"Analisando: {arquivo}\n")
 with open(arquivo, "r", encoding="utf-8") as f:
     codigo = f.read()
 
-try:s
+try:
     # =========================
     # LÉXICO + SINTÁTICO
     # =========================
