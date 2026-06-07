@@ -117,6 +117,14 @@ class Parser:
 
             return self.return_stmt()
 
+        # PARAR (break)
+
+        elif self.token_atual.tipo == TokenType.PARAR:
+
+            self.comer(TokenType.PARAR)
+            self.comer(TokenType.PONTO_VIRG)
+            return Parar()
+
         # INPUT
 
         elif self.token_atual.tipo == TokenType.COLETAR:
@@ -436,7 +444,11 @@ class Parser:
 
         bloco_else = None
 
-        if self.token_atual.tipo == TokenType.SENAO:
+        if self.token_atual.tipo == TokenType.SENAOSEVIDA:
+
+            bloco_else = Block([self._senao_sevida()])
+
+        elif self.token_atual.tipo == TokenType.SENAO:
 
             self.comer(TokenType.SENAO)
 
@@ -447,6 +459,32 @@ class Parser:
             bloco_if,
             bloco_else
         )
+
+    def _senao_sevida(self):
+
+        self.comer(TokenType.SENAOSEVIDA)
+
+        self.comer(TokenType.ABRE_PAR)
+
+        condicao = self.expr()
+
+        self.comer(TokenType.FECHA_PAR)
+
+        bloco_if = self.bloco()
+
+        bloco_else = None
+
+        if self.token_atual.tipo == TokenType.SENAOSEVIDA:
+
+            bloco_else = Block([self._senao_sevida()])
+
+        elif self.token_atual.tipo == TokenType.SENAO:
+
+            self.comer(TokenType.SENAO)
+
+            bloco_else = self.bloco()
+
+        return If(condicao, bloco_if, bloco_else)
 
     # =====================================
     # EXPRESSÃO

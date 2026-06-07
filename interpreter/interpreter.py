@@ -7,6 +7,9 @@ class ReturnException(Exception):
 
         self.valor = valor
 
+class PararException(Exception):
+    pass
+
 
 class Interpreter:
 
@@ -178,11 +181,18 @@ class Interpreter:
     # WHILE
     # =========================
 
+    def visitar_Parar(self, _):
+
+        raise PararException()
+
     def visitar_While(self, node):
 
         while self.visitar(node.condicao):
 
-            self.visitar(node.bloco)
+            try:
+                self.visitar(node.bloco)
+            except PararException:
+                break
 
     # =========================
     # FOR
@@ -194,7 +204,10 @@ class Interpreter:
 
         while self.visitar(node.condicao):
 
-            self.visitar(node.bloco)
+            try:
+                self.visitar(node.bloco)
+            except PararException:
+                break
 
             self.visitar(node.incremento)
 
