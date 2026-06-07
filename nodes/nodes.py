@@ -221,7 +221,7 @@ class Variable:
     def __repr__(self):
 
         return f"Variable({self.nome})"
-
+    
 class Return:
 
     def __init__(self, valor):
@@ -241,3 +241,9 @@ class Input:
     def __repr__(self):
 
         return f"Input({self.nome})"
+
+class Parar:
+
+    def __repr__(self):
+
+        return "Parar()"

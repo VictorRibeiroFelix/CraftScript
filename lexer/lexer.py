@@ -163,6 +163,11 @@ class Lexer:
 
             "verdadeiro": TokenType.VERDADEIRO,
             "falso": TokenType.FALSO,
+
+            # CONTROLE EXTRA
+
+            "parar": TokenType.PARAR,
+            "continuar": TokenType.CONTINUAR
         }
 
         tipo = palavras.get(resultado, TokenType.ID)
