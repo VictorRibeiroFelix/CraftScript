@@ -18,7 +18,7 @@ from interpreter.interpreter import Interpreter
 class StreamRedirect:
 
     def __init__(self, callback):
-
+        
         self.callback = callback
 
     def write(self, text):
@@ -172,6 +172,49 @@ class CraftScriptIDE:
         self.saida.tag_config("dim",     foreground=self.COR_CINZA)
         self.saida.tag_config("escopo",  foreground="#9b59b6")
 
+        # BARRA INFERIOR
+        barra_baixo = tk.Frame(self.root, bg=self.COR_BARRA, pady=8)
+        barra_baixo.pack(fill=tk.X, padx=12, pady=(8, 0))
+
+        estilo_btn = {
+            "font": ("Consolas", 10, "bold"),
+            "relief": tk.FLAT,
+            "cursor": "hand2",
+            "padx": 16, "pady": 6,
+            "bd": 0
+        }
+
+        tk.Button(
+            barra_baixo, text="Abrir Arquivo",
+            bg="#3e3e3e", fg=self.COR_TEXTO,
+            activebackground="#555", activeforeground="white",
+            command=self._abrir_arquivo,
+            **estilo_btn
+        ).pack(side=tk.LEFT, padx=(0, 6))
+
+        tk.Button(
+            barra_baixo, text="▶  Executar",
+            bg=self.COR_VERDE, fg="#1e1e1e",
+            activebackground="#27ae60", activeforeground="#1e1e1e",
+            command=self._executar,
+            **estilo_btn
+        ).pack(side=tk.LEFT, padx=(0, 6))
+
+        tk.Button(
+            barra_baixo, text="Limpar Saída",
+            bg="#3e3e3e", fg=self.COR_TEXTO,
+            activebackground="#555", activeforeground="white",
+            command=self._limpar_saida,
+            **estilo_btn
+        ).pack(side=tk.LEFT)
+
+        self.label_status = tk.Label(
+            barra_baixo, text="● Pronto",
+            font=("Consolas", 10),
+            bg=self.COR_BARRA, fg=self.COR_VERDE
+        )
+        self.label_status.pack(side=tk.RIGHT, padx=10)
+
     # ------------------------------------------------
     # CARREGAR EXEMPLO INICIAL
     # ------------------------------------------------
@@ -184,6 +227,67 @@ class CraftScriptIDE:
                 return
             except FileNotFoundError:
                 continue
+
+    # ------------------------------------------------
+    # AÇÕES DOS BOTÕES
+    # ------------------------------------------------
+
+    def _abrir_arquivo(self):
+        path = filedialog.askopenfilename(
+            title="Abrir arquivo CraftScript",
+            filetypes=[("CraftScript", "*.craft"), ("Todos os arquivos", "*.*")]
+        )
+        if path:
+            with open(path, "r", encoding="utf-8") as f:
+                self.editor.delete("1.0", tk.END)
+                self.editor.insert("1.0", f.read())
+            self._status(f"● {os.path.basename(path)}", self.COR_AZUL)
+
+    def _limpar_saida(self):
+        self.saida.config(state=tk.NORMAL)
+        self.saida.delete("1.0", tk.END)
+        self.saida.config(state=tk.DISABLED)
+        self._status("● Pronto", self.COR_VERDE)
+
+    def _executar(self):
+        self._limpar_saida()
+        codigo = self.editor.get("1.0", tk.END)
+
+        self._status("● Executando...", self.COR_AMARELO)
+        self.root.update()
+
+        stdout_original = sys.stdout
+        sys.stdout = StreamRedirect(lambda t: self._escrever(t, "escopo"))
+
+        try:
+            # ── LÉXICO + SINTÁTICO ──
+            self._escrever("── ANÁLISE LÉXICA / SINTÁTICA ──\n", "header")
+            lexer  = Lexer(codigo)
+            parser = Parser(lexer)
+            ast    = parser.programa()
+            self._escrever("\nAST gerada com sucesso.\n", "ok")
+            self._escrever(str(ast) + "\n", "dim")
+
+            # ── SEMÂNTICO ──
+            self._escrever("\n── ANÁLISE SEMÂNTICA ──\n", "header")
+            sem = Semantico()
+            sem.visitar(ast)
+            self._escrever("\nAnálise semântica concluída sem erros.\n", "ok")
+
+            # ── EXECUÇÃO ──
+            self._escrever("\n── EXECUÇÃO ──\n", "header")
+            sys.stdout = StreamRedirect(lambda t: self._escrever(t, "normal"))
+            interp = InterpreterGUI(self.root)
+            interp.visitar(ast)
+
+            self._status("● Concluído com sucesso", self.COR_VERDE)
+
+        except Exception as e:
+            self._escrever(f"\nERRO: {e}\n", "erro")
+            self._status("● Erro encontrado", self.COR_VERMELHO)
+
+        finally:
+            sys.stdout = stdout_original
 
     # ------------------------------------------------
     # UTILITÁRIOS
@@ -207,3 +311,4 @@ class CraftScriptIDE:
 if __name__ == "__main__":
     root = tk.Tk()
     CraftScriptIDE(root)
+    root.mainloop()
