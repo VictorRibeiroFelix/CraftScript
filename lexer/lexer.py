@@ -12,7 +12,7 @@ class Lexer:
         self.linha = 1
         self.coluna = 1
 
-        self.char = self.codigo[self.pos]
+        self.char = self.codigo[self.pos] if self.codigo else None
 
     # =========================
     # AVANÇAR
