@@ -19,6 +19,7 @@ Linguagem de programação interpretada com temática **Minecraft**, desenvolvid
   - [Funções](#funções)
 - [Exemplos](#exemplos)
 - [Erros comuns](#erros-comuns)
+- [Parte II — Análise Sintática Bottom Up](#parte-ii--análise-sintática-bottom-up)
 
 ---
 
@@ -54,8 +55,12 @@ CraftScript/
 │   ├── token.py             # Classe Token
 │   └── token_type.py        # Enumeração de todos os tipos de token
 │
+├── gui.py                   # Interface gráfica (editor + saída)
+├── gui_bottom_up.py         # Visualizador passo a passo da análise Bottom Up
+│
 ├── parser/
-│   └── parser.py            # Analisador sintático (parser recursivo descendente)
+│   ├── parser.py            # Analisador sintático (parser recursivo descendente)
+│   └── parser_bottom_up.py  # Analisador sintático Bottom Up (tabela SLR)
 │
 ├── nodes/
 │   └── nodes.py             # Classes dos nós da AST (Árvore Sintática Abstrata)
@@ -66,7 +71,14 @@ CraftScript/
 ├── interpreter/
 │   └── interpreter.py       # Interpretador (executa a AST)
 │
-└── teste.craft              # Programa de exemplo escrito em CraftScript
+├── docs/
+│   ├── parte2_analise_sintatica.md/.pdf  # Gramática, AFD de itens, Primeiro/Sequência e tabela SLR
+│   ├── explicacao_bottom_up.md/.pdf      # Guia completo: funcionamento, apresentação e perguntas
+│   └── img/                              # Prints da interface
+│
+├── teste.craft              # Programa de exemplo escrito em CraftScript
+├── bottomup_valido.craft    # Entrada válida para a análise Bottom Up
+└── bottomup_invalido.craft  # Entrada inválida para a análise Bottom Up
 ```
 
 ---
@@ -352,3 +364,37 @@ mundo {
 | `tipo declarado 'pedra' incompatível com 'fumaca'` | Tipo errado na atribuição | Usar o tipo correto ou converter |
 | `'dropar' usado fora de uma função` | Return fora de `spawnar` | Mover o `dropar` para dentro da função |
 | `Float inválido` | Número com dois pontos (ex: `3.1.4`) | Corrigir o número |
+
+---
+
+## Parte II — Análise Sintática Bottom Up
+
+Além do parser recursivo descendente, o projeto tem um **analisador sintático Bottom Up (SLR)** em [parser/parser_bottom_up.py](parser/parser_bottom_up.py). Ele usa os tokens do Analisador Léxico e uma **tabela de análise sintática** (ACAO/DESVIO) para decidir se a entrada é aceita pela gramática:
+
+```
+S → lista
+lista → lista comando | comando
+comando → ID = expr ;
+expr → expr + termo | termo
+termo → termo * fator | fator
+fator → ( expr ) | NUM | ID
+```
+
+Exemplo de entrada válida: `a = 10 + 20 * 3;`
+Exemplos de entradas inválidas: `a = 10 + ;` · `a = * 20;` · `a 10 + 20;` · `a = 10 + 20`
+
+**Como executar:**
+
+```bash
+py main.py bottomup_valido.craft --bottom-up
+py main.py bottomup_invalido.craft --bottom-up
+```
+
+Na interface gráfica (`py gui.py`):
+- **⇧ Análise Bottom Up** mostra cada passo (pilha, entrada e ação) e o resultado.
+- **Visualizador Bottom Up** abre uma janela ([gui_bottom_up.py](gui_bottom_up.py)) que executa a análise passo a passo, desenha a pilha, destaca na tabela SLR a célula consultada e explica cada ação.
+- **Tabela SLR** mostra a tabela usada pelo analisador.
+
+Um guia completo explicando o funcionamento (com roteiro de apresentação e perguntas frequentes) está em [docs/explicacao_bottom_up.pdf](docs/explicacao_bottom_up.pdf).
+
+A gramática aumentada, o AFD de itens, os conjuntos Primeiro e Sequência, a tabela completa e um exemplo passo a passo estão em [docs/parte2_analise_sintatica.md](docs/parte2_analise_sintatica.md).
