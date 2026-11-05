@@ -1,0 +1,3 @@
+// Entrada INVALIDA para a analise Bottom Up (SLR)
+// Falta o operando depois do '+'
+a = 10 + ;

@@ -7,6 +7,8 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
 from lexer.lexer             import Lexer
 from parser.parser           import Parser
+from parser.parser_bottom_up import ParserBottomUp, formatar_tabela_slr
+from gui_bottom_up           import JanelaBottomUp
 from semantic.semantic       import Semantico
 from interpreter.interpreter import Interpreter
 
@@ -159,9 +161,11 @@ class CraftScriptIDE:
         )
 
         scroll_saida = tk.Scrollbar(frame_saida, command=self.saida.yview, bg=self.COR_BARRA)
-        self.saida.config(yscrollcommand=scroll_saida.set)
+        scroll_saida_h = tk.Scrollbar(frame_saida, orient=tk.HORIZONTAL, command=self.saida.xview, bg=self.COR_BARRA)
+        self.saida.config(yscrollcommand=scroll_saida.set, xscrollcommand=scroll_saida_h.set)
 
         scroll_saida.pack(side=tk.RIGHT, fill=tk.Y)
+        scroll_saida_h.pack(side=tk.BOTTOM, fill=tk.X)
         self.saida.pack(fill=tk.BOTH, expand=True)
 
         # TAGS DE COR
@@ -197,6 +201,30 @@ class CraftScriptIDE:
             bg=self.COR_VERDE, fg="#1e1e1e",
             activebackground="#27ae60", activeforeground="#1e1e1e",
             command=self._executar,
+            **estilo_btn
+        ).pack(side=tk.LEFT, padx=(0, 6))
+
+        tk.Button(
+            barra_baixo, text="⇧  Análise Bottom Up",
+            bg=self.COR_AZUL, fg="#1e1e1e",
+            activebackground="#3498db", activeforeground="#1e1e1e",
+            command=self._analisar_bottom_up,
+            **estilo_btn
+        ).pack(side=tk.LEFT, padx=(0, 6))
+
+        tk.Button(
+            barra_baixo, text="Visualizador Bottom Up",
+            bg=self.COR_AMARELO, fg="#1e1e1e",
+            activebackground="#e67e22", activeforeground="#1e1e1e",
+            command=self._abrir_visualizador,
+            **estilo_btn
+        ).pack(side=tk.LEFT, padx=(0, 6))
+
+        tk.Button(
+            barra_baixo, text="Tabela SLR",
+            bg="#3e3e3e", fg=self.COR_TEXTO,
+            activebackground="#555", activeforeground="white",
+            command=self._mostrar_tabela_slr,
             **estilo_btn
         ).pack(side=tk.LEFT, padx=(0, 6))
 
@@ -249,8 +277,46 @@ class CraftScriptIDE:
         self.saida.config(state=tk.DISABLED)
         self._status("● Pronto", self.COR_VERDE)
 
+    def _analisar_bottom_up(self):
+        self._limpar_saida()
+        self.saida.config(wrap=tk.NONE)
+        codigo = self.editor.get("1.0", tk.END)
+
+        self._escrever("── ANÁLISE SINTÁTICA BOTTOM UP (SLR) ──\n\n", "header")
+        parser = ParserBottomUp(Lexer(codigo))
+
+        try:
+            ast = parser.analisar()
+            self._escrever(parser.formatar_passos() + "\n", "normal")
+            self._escrever("\nEntrada ACEITA pela gramática.\n", "ok")
+            self._escrever("\nAST gerada pelas ações de redução:\n", "header")
+            for comando in ast.statements:
+                self._escrever(f"  {comando}\n", "dim")
+            self._status("● Entrada aceita", self.COR_VERDE)
+
+        except Exception as e:
+            if parser.passos:
+                self._escrever(parser.formatar_passos() + "\n", "normal")
+            self._escrever(f"\nEntrada REJEITADA.\nERRO: {e}\n", "erro")
+            self._status("● Entrada rejeitada", self.COR_VERMELHO)
+
+    def _abrir_visualizador(self):
+        codigo = self.editor.get("1.0", tk.END).strip()
+        # Programas "mundo { }" não seguem a gramática do Bottom Up: abre com o exemplo
+        if not codigo or "mundo" in codigo:
+            codigo = None
+        JanelaBottomUp(self.root, codigo)
+
+    def _mostrar_tabela_slr(self):
+        self._limpar_saida()
+        self.saida.config(wrap=tk.NONE)
+        self._escrever("── TABELA DE ANÁLISE SINTÁTICA SLR ──\n\n", "header")
+        self._escrever(formatar_tabela_slr() + "\n", "normal")
+        self._escrever("\nsN = empilhar e ir ao estado N  ·  rN = reduzir pela produção N  ·  acc = aceitar\n", "dim")
+
     def _executar(self):
         self._limpar_saida()
+        self.saida.config(wrap=tk.WORD)
         codigo = self.editor.get("1.0", tk.END)
 
         self._status("● Executando...", self.COR_AMARELO)
